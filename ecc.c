@@ -11,6 +11,12 @@ ECurve *newECurve(int a, int b, int p) {
     return curve;
 }
 
+void freeECurve(ECurve *curve) {
+    if (curve) {
+        free(curve);
+    }
+}
+
 void ECPointSet(ECurve *curve, ECPoint **point, int x, int y) {
     if (!point || !*point) return;
     (*point)->x = mod_norm(x, curve->p);
@@ -32,6 +38,12 @@ ECPoint *newECPoint(ECurve *curve, int x, int y) {
     return point;
 }
 
+void freeECPoint(ECPoint *point) {
+    if (point) {
+        free(point);
+    }
+}
+
 // p == q
 int ECPointIsEqual( ECPoint *P,  ECPoint *Q) {
     if (P->is_infinity && Q->is_infinity) return 1;
@@ -41,6 +53,12 @@ int ECPointIsEqual( ECPoint *P,  ECPoint *Q) {
 
 // result = p + q
 ECStatus ECPointAdd( ECurve *curve,  ECPoint *p,  ECPoint *q, ECPoint **result) {
+
+    if (p->is_infinity && q->is_infinity) {
+        ECPointSetInfinity(result);
+        return EC_OK;
+    }
+
     if (p->is_infinity) {
         ECPointSet(curve, result, q->x, q->y);
         return EC_OK;
@@ -95,3 +113,23 @@ ECStatus ECPointDouble( ECurve *curve,  ECPoint *p, ECPoint **result) {
 
     return EC_OK;
 }
+
+// result = k * p
+ECStatus ECPointMultiply(ECurve *curve, ECPoint *p, int k, ECPoint **result) {
+    if (k < 0) return EC_ERROR;
+
+    ECPointSetInfinity(result);
+    ECPoint *base = newECPoint(curve, p->x, p->y);
+
+    while(k) {
+        if (k&1) {
+            ECStatus status = ECPointAdd(curve, *result, base, result);
+            if (status != EC_OK) return status;
+        }
+        k >>= 1;
+        ECPointDouble(curve, base, &base);
+    }
+    freeECPoint(base);
+    return EC_OK;
+}
+
