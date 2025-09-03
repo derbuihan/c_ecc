@@ -21,8 +21,11 @@ struct ECurve {
 
 ECurve *newECurve(int a, int b, int p);
 void freeECurve(ECurve *curve);
-ECPoint *newECPoint(ECurve *curve, int x, int y);
+ECPoint *newECPoint(ECurve *curve);
 void freeECPoint(ECPoint *point);
+
+ECStatus ECPointSet(ECurve *curve, ECPoint **point, int x, int y);
+ECStatus ECPointSetInfinity(ECPoint **point);
 
 ECStatus ECPointAdd(ECurve *curve, ECPoint *p, ECPoint *q, ECPoint **result);
 ECStatus ECPointDouble(ECurve *curve, ECPoint *p, ECPoint **result);

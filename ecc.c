@@ -17,24 +17,9 @@ void freeECurve(ECurve *curve) {
     }
 }
 
-void ECPointSet(ECurve *curve, ECPoint **point, int x, int y) {
-    if (!point || !*point) return;
-    (*point)->x = mod_norm(x, curve->p);
-    (*point)->y = mod_norm(y, curve->p);
-    (*point)->is_infinity = false;
-}
-
-void ECPointSetInfinity(ECPoint **point) {
-    if (!point || !*point) return;
-    (*point)->x = 0;
-    (*point)->y = 0;
-    (*point)->is_infinity = true;
-}
-
-ECPoint *newECPoint(ECurve *curve, int x, int y) {
+ECPoint *newECPoint(ECurve *curve) {
     ECPoint *point = (ECPoint *)malloc(sizeof(ECPoint));
     if (!point) return NULL;
-    ECPointSet(curve, &point, x, y);
     return point;
 }
 
@@ -42,6 +27,31 @@ void freeECPoint(ECPoint *point) {
     if (point) {
         free(point);
     }
+}
+
+// Check if a point is on the curve
+bool ECPointIsOnCurve(ECurve *curve, int x, int y) {
+    if (!curve) return false;
+    int left = mod_norm(y * y, curve->p);
+    int right = mod_norm(x * x * x + curve->a * x + curve->b, curve->p);
+    return left == right;
+}
+
+ECStatus ECPointSet(ECurve *curve, ECPoint **point, int x, int y) {
+    if (!point || !*point) return EC_ERROR;
+    if (!ECPointIsOnCurve(curve, x, y)) return EC_ERROR;
+    (*point)->x = mod_norm(x, curve->p);
+    (*point)->y = mod_norm(y, curve->p);
+    (*point)->is_infinity = false;
+    return EC_OK;
+}
+
+ECStatus ECPointSetInfinity(ECPoint **point) {
+    if (!point || !*point) return EC_ERROR;
+    (*point)->x = 0;
+    (*point)->y = 0;
+    (*point)->is_infinity = true;
+    return EC_OK;
 }
 
 // p == q
@@ -53,7 +63,6 @@ int ECPointIsEqual( ECPoint *P,  ECPoint *Q) {
 
 // result = p + q
 ECStatus ECPointAdd( ECurve *curve,  ECPoint *p,  ECPoint *q, ECPoint **result) {
-
     if (p->is_infinity && q->is_infinity) {
         ECPointSetInfinity(result);
         return EC_OK;
@@ -119,7 +128,8 @@ ECStatus ECPointMultiply(ECurve *curve, ECPoint *p, int k, ECPoint **result) {
     if (k < 0) return EC_ERROR;
 
     ECPointSetInfinity(result);
-    ECPoint *base = newECPoint(curve, p->x, p->y);
+    ECPoint *base = newECPoint(curve);
+    ECPointSet(curve, &base, p->x, p->y);
 
     while(k) {
         if (k&1) {

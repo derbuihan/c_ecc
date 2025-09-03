@@ -1,40 +1,42 @@
 #include <stdio.h>
-#include "discrete_log.h"
-#include "math.h"
+#include "ecc.h"
 
 int main() {
-    int p = 1009;
-    int g = 11;
+    int a = 2, b = 3;
+    int p = 5;
 
-    // private keys
-    int a = 123;
-    int b = 456;
+    ECurve *curve = newECurve(a, b, p);
 
-    // public keys
-    int A = mod_pow(g, a, p); // Alice public key
-    int B = mod_pow(g, b, p); // Bob public key
-    printf("Alice's public key: %d\n", A);
-    printf("Bob's public key: %d\n", B);
+    ECPoint *P = newECPoint(curve);
+    if (ECPointSet(curve, &P, 3, 1) == EC_ERROR) {
+        printf("Failed to set point P\n");
+        freeECPoint(P);
+        freeECurve(curve);
+        return 1;
+    }
+    printf("P = (%d, %d)\n", P->x, P->y);
 
-    // Shared secret
-    int s1 = mod_pow(B, a, p);
-    int s2 = mod_pow(A, b, p);
+    ECPoint *Q = newECPoint(curve);
+    ECPointSetInfinity(&Q);
+    printf("Q = (inf, inf)\n");
 
-    if (s1 == s2) {
-        printf("Shared secret established: %d\n", s1);
-    } else {
-        printf("Shared secret failed.\n");
+    ECPoint *R = newECPoint(curve);
+    ECPointSetInfinity(&R);
+    printf("R = (inf, inf)\n");
+
+    for (int k = 1; k < 5; k++) {
+        printf("---\n");
+        ECPointAdd(curve, P, Q, &Q);
+        printf("Q = (%d, %d)\n", Q->x, Q->y);
+
+        ECPointMultiply(curve, P, k, &R);
+        printf("R = (%d, %d)\n", R->x, R->y);
     }
 
-    // Solve
-    int a_ = discrete_log(g, A, p);
-    int b_ = discrete_log(g, B, p);
-
-    if (a_ != -1 && b_ != -1) {
-        printf("Discrete log found: a = %d, b = %d\n", a_, b_);
-    } else {
-        printf("Discrete log not found.\n");
-    }
+    freeECPoint(P);
+    freeECPoint(Q);
+    freeECPoint(R);
+    freeECurve(curve);
 
     return 0;
 }
