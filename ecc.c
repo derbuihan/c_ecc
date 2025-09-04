@@ -37,6 +37,23 @@ bool ECPointIsOnCurve(ECurve *curve, int x, int y) {
     return left == right;
 }
 
+// Find a point on the curve
+ECStatus ECPointFindOnCurve(ECurve *curve, int *x, int *y) {
+    if (!curve || !x || !y) return EC_ERROR;
+    for (int i = 0; i < curve->p; i++) {
+        for (int j = 0; j < curve->p; j++) {
+            if (ECPointIsOnCurve(curve, i, j)) {
+                *x = i;
+                *y = j;
+                return EC_OK;
+            }
+        }
+    }
+    *x = -1;
+    *y = -1;
+    return EC_ERROR;
+}
+
 ECStatus ECPointSet(ECurve *curve, ECPoint **point, int x, int y) {
     if (!point || !*point) return EC_ERROR;
     if (!ECPointIsOnCurve(curve, x, y)) return EC_ERROR;

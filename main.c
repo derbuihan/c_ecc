@@ -3,40 +3,42 @@
 
 int main() {
     int a = 2, b = 3;
-    int p = 5;
+    int p = 17;
 
     ECurve *curve = newECurve(a, b, p);
 
-    ECPoint *P = newECPoint(curve);
-    if (ECPointSet(curve, &P, 3, 1) == EC_ERROR) {
-        printf("Failed to set point P\n");
-        freeECPoint(P);
-        freeECurve(curve);
-        return 1;
+    int x, y;
+    ECPointFindOnCurve(curve, &x, &y);
+
+    ECPoint *G = newECPoint(curve);
+    ECPointSet(curve, &G, x, y);
+    printf("G = (%d, %d)\n", G->x, G->y);
+
+    // Private Key
+    int A_private = 123;
+    int B_private = 456;
+
+    // Public key
+    ECPoint *A_public = newECPoint(curve);
+    ECPointMultiply(curve, G, A_private, &A_public);
+    printf("A's public key = (%d, %d)\n", A_public->x, A_public->y);
+
+    ECPoint *B_public = newECPoint(curve);
+    ECPointMultiply(curve, G, B_private, &B_public);
+    printf("B's public key = (%d, %d)\n", B_public->x, B_public->y);
+
+    // Shared secret
+    ECPoint *A_shared = newECPoint(curve);
+    ECPointMultiply(curve, B_public, A_private, &A_shared);
+
+    ECPoint *B_shared = newECPoint(curve);
+    ECPointMultiply(curve, A_public, B_private, &B_shared);
+
+    if (ECPointIsEqual(A_shared, B_shared)) {
+        printf("Shared secret established successfully.\n");
+    } else {
+        printf("Failed to establish shared secret.\n");
     }
-    printf("P = (%d, %d)\n", P->x, P->y);
-
-    ECPoint *Q = newECPoint(curve);
-    ECPointSetInfinity(&Q);
-    printf("Q = (inf, inf)\n");
-
-    ECPoint *R = newECPoint(curve);
-    ECPointSetInfinity(&R);
-    printf("R = (inf, inf)\n");
-
-    for (int k = 1; k < 5; k++) {
-        printf("---\n");
-        ECPointAdd(curve, P, Q, &Q);
-        printf("Q = (%d, %d)\n", Q->x, Q->y);
-
-        ECPointMultiply(curve, P, k, &R);
-        printf("R = (%d, %d)\n", R->x, R->y);
-    }
-
-    freeECPoint(P);
-    freeECPoint(Q);
-    freeECPoint(R);
-    freeECurve(curve);
 
     return 0;
 }

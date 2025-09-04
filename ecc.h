@@ -24,9 +24,11 @@ void freeECurve(ECurve *curve);
 ECPoint *newECPoint(ECurve *curve);
 void freeECPoint(ECPoint *point);
 
+ECStatus ECPointFindOnCurve(ECurve *curve, int *x, int *y);
 ECStatus ECPointSet(ECurve *curve, ECPoint **point, int x, int y);
 ECStatus ECPointSetInfinity(ECPoint **point);
 
+int ECPointIsEqual(ECPoint *P, ECPoint *Q);
 ECStatus ECPointAdd(ECurve *curve, ECPoint *p, ECPoint *q, ECPoint **result);
 ECStatus ECPointDouble(ECurve *curve, ECPoint *p, ECPoint **result);
 ECStatus ECPointMultiply(ECurve *curve, ECPoint *p, int k, ECPoint **result);
