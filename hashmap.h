@@ -20,8 +20,7 @@ struct HashMap {
 
 HashMap *newHashMap(int size);
 HashMapStatus insertToHashMap(HashMap *hashmap, const int key, const int value);
-HashMapStatus getValueFromHashMap(const HashMap *hashmap, const int key,
-                                  int *value);
+HashMapStatus getValueFromHashMap(HashMap *hashmap, int key, int *value);
 void freeHashMap(HashMap *hashmap);
 
 #endif

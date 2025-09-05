@@ -1,6 +1,7 @@
 #include "ecc.h"
 #include <stdlib.h>
 #include "math.h"
+#include "ecc_hashmap.h"
 
 ECurve *newECurve(int a, int b, int p) {
     ECurve *curve = (ECurve *)malloc(sizeof(ECurve));
@@ -160,3 +161,44 @@ ECStatus ECPointMultiply(ECurve *curve, ECPoint *p, int k, ECPoint **result) {
     return EC_OK;
 }
 
+// find k such that Q = k * P
+int ECPointDiscreteLog(ECurve *curve, ECPoint *P, ECPoint *Q) {
+    int p = curve->p;
+    int q = isqrt(p + 2 * isqrt(p) + 1) + 1; 
+
+    // Baby-step
+    ECPointHashMap *hashmap = newECPointHashMap(q);
+    ECPoint *R = newECPoint(curve);
+    ECPointSetInfinity(&R);
+    for (int i = 0; i <= q; i++) {
+        insertToECPointHashMap(hashmap, R, i);
+        ECPointAdd(curve, R, P, &R);
+    }
+
+    // Giant-step
+    ECPoint *P_inv = newECPoint(curve);
+    ECPointSet(curve, &P_inv, P->x, -P->y);
+    ECPoint *P_inv_q = newECPoint(curve);
+    ECPointMultiply(curve, P_inv, q, &P_inv_q);
+
+    ECPoint *giant_step = newECPoint(curve);
+    ECPointSet(curve, &giant_step, Q->x, Q->y);
+    int result = -1;
+
+    for (int a = 0; a <= q; a++) {
+        int b;
+        if (getValueFromECPointHashMap(hashmap, giant_step, &b) == EC_OK) {
+            result = a * q + b;
+            break;
+        }
+        ECPointAdd(curve, giant_step, P_inv_q, &giant_step);
+    }
+
+    freeECPointHashMap(hashmap);
+    freeECPoint(R);
+    freeECPoint(P_inv);
+    freeECPoint(P_inv_q);
+    freeECPoint(giant_step);
+
+    return result;
+}

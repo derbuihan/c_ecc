@@ -41,8 +41,7 @@ HashMapStatus insertToHashMap(HashMap *hashmap, const int key, const int value) 
     return HASHMAP_OK;
 }
 
-HashMapStatus getValueFromHashMap(const HashMap *hashmap, const int key,
-                                  int *value) {
+HashMapStatus getValueFromHashMap(HashMap *hashmap, int key, int *value) {
     int index = hash(key, hashmap->size);
 
     Entry *node = hashmap->entries[index];

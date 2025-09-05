@@ -33,4 +33,6 @@ ECStatus ECPointAdd(ECurve *curve, ECPoint *p, ECPoint *q, ECPoint **result);
 ECStatus ECPointDouble(ECurve *curve, ECPoint *p, ECPoint **result);
 ECStatus ECPointMultiply(ECurve *curve, ECPoint *p, int k, ECPoint **result);
 
+int ECPointDiscreteLog(ECurve *curve, ECPoint *P, ECPoint *Q);
+
 #endif

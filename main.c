@@ -3,7 +3,7 @@
 
 int main() {
     int a = 2, b = 3;
-    int p = 17;
+    int p = 1009;
 
     ECurve *curve = newECurve(a, b, p);
 
@@ -38,6 +38,26 @@ int main() {
         printf("Shared secret established successfully.\n");
     } else {
         printf("Failed to establish shared secret.\n");
+    }
+
+    // Discrete Log
+    int A_private_ = ECPointDiscreteLog(curve, G, A_public);
+    int B_private_ = ECPointDiscreteLog(curve, G, B_public);
+
+    ECPoint *A_public_ = newECPoint(curve);
+    ECPointMultiply(curve, G, A_private_, &A_public_);
+    if (ECPointIsEqual(A_public_, A_public)) {
+        printf("A's public key recovered successfully: (%d, %d)\n", A_public_->x, A_public_->y);
+    } else {
+        printf("Failed to recover A's public key.\n");
+    }
+
+    ECPoint *B_public_ = newECPoint(curve);
+    ECPointMultiply(curve, G, B_private_, &B_public_);
+    if (ECPointIsEqual(B_public_, B_public)) {
+        printf("B's public key recovered successfully: (%d, %d)\n", B_public_->x, B_public_->y);
+    } else {
+        printf("Failed to recover B's public key.\n");
     }
 
     return 0;
